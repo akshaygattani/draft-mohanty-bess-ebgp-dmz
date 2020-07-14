@@ -40,17 +40,17 @@
     </author>
     <author fullname="Arie Vayner" initials="A."
             surname="Vayner">
-      <organization>Nutanix</organization>
+      <organization>Google</organization>
       <address>
         <postal>
-          <street>1740 Technology Drive</street>
+          <street>1600 Amphitheatre Parkway</street>
           <street/>
-          <city>San Jose</city>
-          <code>95110</code>
+          <city>Mountain View</city>
+          <code>94043</code>
           <region>CA</region>
           <country>USA</country>
         </postal>
-        <email>ariev@vayner.net</email>
+        <email>avayner@google.com</email>
       </address>
     </author>
     <author fullname="Akshay Gattani" initials="A."
@@ -140,12 +140,12 @@ In draft <xref target="I-D.ietf-idr-link-bandwidth"/>, the DMZ link bandwidth ad
    <t>Figure 1 above represents an all-EBGP network. Router
 R3 is peering with two other EBGP downstream routers, R1 and R2, over the eBGP link and another upstream EBGP router R4. There is another router, R5, which is peering with two downstream routers R6 and R7. R5 peers with R4.
 A net, p/m, is learnt by R1, R2, R6, and R7 from their downstream routers (not shown). From the perspective of R4, the topology looks like a directed tree. The link bandwidths of the EBGP links are shown alongside the links (The exact units are not really important and for simplicity these can be assumed to be weights proportional to the operational link bandwidths). It is assumed that R3, R4 and R5 have multi-path configured and paths having different value as-path attributes can still be considered as multi-path (knobs exist in many implementations for this).
-When the ingress router, R4, sends traffic to the destination p/m, the traffic needs to be spread amongst the links in the ratio of their link bandwidths. Today this is not possible as there is no way to signal the link bandwidth extended community over the EBGP session from R3 to R4. In absence of a mechanism to regenerate the link bandwidth over the EBGP session from R3 to R4 and from R5 to R4, the assumed link bandwidth for paths received over the R3 to R4 and R5 to R4 EBGP sessions would be equal to the operational link bandwidth of the corresponding EBGP links. 
+When the ingress router, R4, sends traffic to the destination p/m, the traffic needs to be spread amongst the links in the ratio of their link bandwidths. Today this is not possible as there is no way to signal the link bandwidth extended community over the EBGP session from R3 to R4. In absence of a mechanism to regenerate the link bandwidth over the EBGP session from R3 to R4 and from R5 to R4, the assumed link bandwidth for paths received over the R3 to R4 and R5 to R4 EBGP sessions would be equal to the operational link bandwidth of the corresponding EBGP links.
 </t>
 
 <t>
 As per EBGP rules at the advertising router, the next-hop will be set to the advertising router itself. Accordingly, R3 computes the best-path from the advertisements received from R1 and R2 and R5 computes the best-path from advertisements received from R6 and R7 respectively. R4 receives the update from R3 and R5 and in-turn computes the best-path and may advertises it upstream (not shown).
-The expected behavior is that when R4 sends traffic for p/m towards R3 and R5, and then on to to R1, R2, R6, and R7, the traffic should be load-balanced based on the calculated weights at the routers which employ multi-path. R4 should send 30% of the traffic to R3 and the remaining 70% to R5. R3 in turn should send 67% of the traffic that it received from R4 to R1 and 33% to R2. Similarly, R5 should send 57% of the traffic received from R4 to R6 and the remaining 43% to R7. Instead what is happening is that R4 sends 50% of the traffic towards both R3 and R5. R3 in turn sends more traffic than is desired towards R1 and R2. R4 in turn sends less traffic than is desired towards R6 and R7. Effectively the load balancing is getting skewed towards R1 and R2 even as R1 and R2's egress link bandwidth relative to R6 and R7 is less.  
+The expected behavior is that when R4 sends traffic for p/m towards R3 and R5, and then on to to R1, R2, R6, and R7, the traffic should be load-balanced based on the calculated weights at the routers which employ multi-path. R4 should send 30% of the traffic to R3 and the remaining 70% to R5. R3 in turn should send 67% of the traffic that it received from R4 to R1 and 33% to R2. Similarly, R5 should send 57% of the traffic received from R4 to R6 and the remaining 43% to R7. Instead what is happening is that R4 sends 50% of the traffic towards both R3 and R5. R3 in turn sends more traffic than is desired towards R1 and R2. R4 in turn sends less traffic than is desired towards R6 and R7. Effectively the load balancing is getting skewed towards R1 and R2 even as R1 and R2's egress link bandwidth relative to R6 and R7 is less.
 </t>
 
        <figure anchor="figure2">
@@ -165,7 +165,7 @@ The expected behavior is that when R4 sends traffic for p/m towards R3 and R5, a
        </figure>
 
 <t>
-With the existing rules for the DMZ link bandwidth, this is not possible. First the LB extended community is not sent over EBGP. Secondly the DMZ does not have a notion of conveying the cumulative link bandwidth (of the directed tree rooted at a node) to an upstream router. To enable the use case described above, the cumulative link bandwidth of R1 and R2 has to be advertised by R3 to R4, and, similarly, the cumulative bandwidth of R6 and R7 has to be advertised by R5 to R4. This will enable R4 to load-balance based on the proportion of the cumulative link bandwidth that it receives from its downstream routers R3 and R5. Figure 2 shows the cumulative link bandwidth advertised by R3 towards R4 and R5 towards R4 with the original link bandwidth values in '()' for comparison. 
+With the existing rules for the DMZ link bandwidth, this is not possible. First the LB extended community is not sent over EBGP. Secondly the DMZ does not have a notion of conveying the cumulative link bandwidth (of the directed tree rooted at a node) to an upstream router. To enable the use case described above, the cumulative link bandwidth of R1 and R2 has to be advertised by R3 to R4, and, similarly, the cumulative bandwidth of R6 and R7 has to be advertised by R5 to R4. This will enable R4 to load-balance based on the proportion of the cumulative link bandwidth that it receives from its downstream routers R3 and R5. Figure 2 shows the cumulative link bandwidth advertised by R3 towards R4 and R5 towards R4 with the original link bandwidth values in '()' for comparison.
 </t>
 <t>
 To address cases like the above example, rather than introducing a new attribute for aggregate link bandwidth, we will reuse the link bandwidth extended community attribute and relax a few assumptions.
@@ -182,7 +182,7 @@ Speaking of overall traffic profile, if we assume that on ingress at R4 traffic 
 <t>
 	link		  ratio			      percent approximation (~)
         --------	  ------------------	      -------------------------
-	R4-R3             1/2x                        50% 
+	R4-R3             1/2x                        50%
 	R4-R5             1/2x                        50%
 	R3-R1             1/3x  (1/2 * 2/3)           33%
 	R3-R2             1/6x  (1/2 * 1/3)           17%
@@ -195,7 +195,7 @@ For comparison the resultant traffic profile in presence of cumulative link band
 
 	link		  ratio			      percent approximation (~)
         --------	  ------------------	      -------------------------
-	R4-R3             3/10x                       30% 
+	R4-R3             3/10x                       30%
 	R4-R5             7/10x                       70%
 	R3-R1             1/5x  (3/10 * 2/3)          20%
 	R3-R2             1/10x  (3/10 * 1/3)         10%
@@ -214,7 +214,7 @@ As is evident, the second table is closer to the desired traffic profile that sh
 The “Use of BGP for Routing in Large-Scale Data Centers" <xref target="RFC7938"></xref> describes a way to design large scale data centers using EBGP across the different routing layers.
 <xref target="RFC7938"></xref> section 6.3 (“Weighted ECMP") describes a use case in which a service (most likely represented using an anycast virtual IP) has an unequal set of resources serving across the data center regions.
 
-Figure 5 shows a typical data center topology as described in section 3.1 of <xref target="RFC7938"></xref> where an unequal number of servers are deployed advertising a certain BGP prefix. As can be seen in the figure, the left side of the data center hosts only 3 servers while the right side hosts 10 servers.
+Figure 3 shows a typical data center topology as described in section 3.1 of <xref target="RFC7938"></xref> where an unequal number of servers are deployed advertising a certain BGP prefix. As can be seen in the figure, the left side of the data center hosts only 3 servers while the right side hosts 10 servers.
 
 <figure anchor="figure3">
            <artwork>
@@ -256,27 +256,27 @@ The result would be a set of weighted load-sharing metrics at each tier allowing
 If a server is added or removed to the service prefix, it would add or remove its link bandwidth value and the network would adjust accordingly.
 </t>
 <t>
-Figure 5 shows a more popular Spine Leaf architecture similar to <xref target="RFC7938"></xref> section 3.2. Tor1, Tor2 and Tor3 are in the same tier, i.e. the leaf tier (The representation shown in Figure 5 here is the unfolded Clos). Using the same example above, it is clear that the LB extended community value received by 
+Figure 4 shows a more popular Spine Leaf architecture similar to <xref target="RFC7938"></xref> section 3.2. Tor1, Tor2 and Tor3 are in the same tier, i.e. the leaf tier (The representation shown in Figure 3 here is the unfolded Clos). Using the same example above, it is clear that the LB extended community value received by
 each of Spine1 and Spine2 from Tor1 and Tor2 is in the ratio 3 to 10 respectively. The Spines will then aggregate the bandwidth, regenerate and advertise the LB extended-community to Tor3. Tor3 will do equal cost sharing to both the spines which in turn will do the traffic-splitting in the ratio 3 to 10 when forwarding the traffic to the Tor1 and Tor2 respectively.
 <figure anchor="figure4">
            <artwork>
 
 
-                 +------+ 
-                 | Tor3 |      Tier 1    
-                 +------+  
+                 +------+
+                 | Tor3 |      Tier 1
+                 +------+
                      |
             +- - - - -+- - - - +
             |                  |
-         +----+              +----+ 
+         +----+              +----+
          |    |              |    |
          |Spine1             |Spine2
          |    |              |    |
-         +----+--+         +-+----+    
-           |      \       /     | 
-                   - + - -  
+         +----+--+         +-+----+
+           |      \       /     |
+                   - + - -
            |      /       \     |
-        +-----+- +          -+-----+ 
+        +-----+- +          -+-----+
         |Tor1 |              |Tor2 |   Tier 1
         +-----+              +-----+
          | | |                | | |
@@ -304,7 +304,7 @@ The link bandwidths are as shown in the figure.
 </t>
 
 <t>
-In the example as can be seen, R4 will do the cumulative bandwidth of the LB that it receives from R2, R3 and R5 which is 30. 
+In the example as can be seen, R4 will do the cumulative bandwidth of the LB that it receives from R2, R3 and R5 which is 30.
 When R4 receives the traffic from R6, it will load-balance it across R2, R3 and R5.
 As a result R1 will receive twice the volume of traffic that R5 does.
 This is not desirable because the bandwidth from R1 to S1 and the bandwidth from S1 to R5 is the same i.e. 10.
@@ -319,9 +319,9 @@ The discrepancy arose because when R4 aggregated the link bandwidth values from 
            |               |
            |               |
  S1- - 10- R1              R4- - - —30 - -R6
-  |        |               |        
-  |        |               |              
- 10        |- - -R3- 10 - -|             
+  |        |               |
+  |        |               |
+ 10        |- - -R3- 10 - -|
   |                        |
   |- - - R5 - - — - — - - -|
 
@@ -332,11 +332,12 @@ The discrepancy arose because when R4 aggregated the link bandwidth values from 
        </figure>
 
 <t>
-One way to make the topology in the figure above conforming would be to regenerate a normalized value of the aggregate link bandwidth when the aggregate link bandwidth is being advertised over more than one eBGP peer link. Such normalization can be achieved through outbound policy application on top of the aggregate link bandwidth value. A couple of options in this context are: 
+One way to make the topology in the figure above conforming would be to regenerate a normalized value of the aggregate link bandwidth when the aggregate link bandwidth is being advertised over more than one eBGP peer link. Such normalization can be achieved through outbound policy application on top of the aggregate link bandwidth value. A couple of options in this context are:
 
-a) divide the aggregate link bandwidth across the eBGP peers equally
-
-b) divide the aggregate link bandwidth across the eBGP peers as per the ratio of the operational link capacity of the eBGP peer links
+<list style="numbers">
+  <t>divide the aggregate link bandwidth across the eBGP peers equally</t>
+  <t>divide the aggregate link bandwidth across the eBGP peers as per the ratio of the operational link capacity of the eBGP peer links</t>
+</list>
 
 These and similar options for regeneration of link-bandwidth to cater to load-balancing requirements in such topologies are outside the scope of this document and can be implementated as additional outbound policy enhancements on top of a computed aggregate link bandwidth.
 </t>
@@ -358,7 +359,7 @@ These and similar options for regeneration of link-bandwidth to cater to load-ba
 
       <t>
 	In topologies and implementation where there is an option to advertise all multipath (equal cost) eligible paths to eBGP peers (i.e. 'ecmp' form of additional-path advertisement is enabled), aggregate link bandwidth advertisement may not be required or may be redundant since the receiving BGP speaker receives the link bandwidth extended community values with all eligible paths, so the aggregate link bandwidth is effectively received by the downstream eBGP speaker and can be used in the local computation to affect the forwarding behaviour. This assumes the additional paths are advertised with next-hop self.
-      </t>	
+      </t>
       </section> <!-- EO Oper -->
 
 
@@ -384,9 +385,9 @@ These and similar options for regeneration of link-bandwidth to cater to load-ba
 
   </middle>
   <back>
-    <references title="Normative References">    
+    <references title="Normative References">
       <?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml"?>
-      
+
       <?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7938.xml"?>
       <?rfc include="http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-idr-link-bandwidth-06.xml"?>
     </references>
